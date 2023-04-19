@@ -10,6 +10,9 @@ if ur going to use this app on your network you can just paste this "http://loca
 now go to "https://www.spotify.com/account/overview/" in there you will find username 
 paste all of that info in to the code and you all done 
 
+dont forget to download imgs and change path to imgs
+
+
 Username is on 54 line
 client_id is on 55 line
 client_secret is on 56 line
