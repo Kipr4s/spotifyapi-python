@@ -1,0 +1,224 @@
+import pygame
+import spotipy
+import spotipy.util as util
+from spotipy.oauth2 import SpotifyOAuth
+import urllib.request
+from datetime import timedelta
+import time
+import PIL
+from PIL import Image
+import requests
+from urllib import error
+pygame.init()
+
+# Set up the screen dimensions
+screen_width = 320
+screen_height = 240
+screen = pygame.display.set_mode((screen_width, screen_height))
+
+# Load background image
+bg_image = pygame.image.load("C:\\Users\\kipar\\Desktop\\tejos\\My_project-1.png")
+bg_image = pygame.transform.scale(bg_image, (869, 494))
+
+
+# set maximum length of text
+max_length = 21
+max_length2 = 20
+
+# Set up colors
+bg_color = (31, 31, 31)
+bar_bg_color = (80, 80, 80)
+text_color = (255, 255, 255)
+
+# Set up font
+font = pygame.font.SysFont("Arial", 19)
+number_font = pygame.font.SysFont("Arial", 10)
+font_small = pygame.font.SysFont("Arial", 15)
+
+# Set up progress bar dimensions
+bar_width = 220
+bar_height = 4
+bar_x = 50
+bar_y = 210
+
+# load the two images buttons
+button_off = pygame.image.load("C:\\Users\\kipar\\PycharmProjects\\pythonProject\\stop.png")
+button_on = pygame.image.load("C:\\Users\\kipar\\PycharmProjects\\pythonProject\\play.png")
+button_next = pygame.image.load("C:\\Users\\kipar\\PycharmProjects\\pythonProject\\next.png")
+button_previous = pygame.image.load("C:\\Users\\kipar\\PycharmProjects\\pythonProject\\back.png")
+
+
+
+# Set up Spotify API credentials and authorize
+scope = "user-read-playback-state"
+username = 'YOUR_USERNAME'
+client_id = 'YOUR_SPOTIFY_CLIENT_ID'
+client_secret = 'YOUR_SPOTIFY_CLIENT_SECRET'
+redirect_uri = 'YOUR_REDIRECT_URL'
+
+# Set maximum number of retries
+max_retries = 10
+
+
+# Wait for network connection indefinitely
+while True:
+    try:
+        sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=client_id,
+                                                               client_secret=client_secret,
+                                                               redirect_uri=redirect_uri,
+                                                               scope=scope,
+                                                               username=username))
+
+        sp.trace = False
+        sp.max_retries = max_retries
+        sp.requests_timeout = 10.0
+        break  # exit the loop if the connection succeeds
+
+    except ConnectionError:
+        print("Waiting for network connection...")
+        time.sleep(5)  # wait for 5 seconds before trying again
+
+# Main game loop
+while True:
+
+    # Pause for half a second before sending the next request
+    time.sleep(0.5)
+
+    current_track = None
+
+    # Keep retrying until the maximum number of retries is reached
+    for i in range(max_retries):
+        try:
+            current_track = sp.current_playback()
+            break  # exit the loop if the request succeeds
+        except requests.exceptions.ReadTimeout as e:
+            print("Timeout error:", e)
+            continue  # continue the loop if the request times out
+        except ConnectionError as e:
+            print("Connection error:", e)
+            break  # exit the loop if there is a connection error
+        except Exception as e:
+            print("Error:", e)
+            break  # exit the loop if an error occurs
+
+    # Check if something is currently playing
+    if current_track is None:
+        text = font.render(" ", True, (0, 0, 0))
+        screen.blit(text, (10, 10))
+    elif current_track['item'] is None:
+        text = font.render(" ", True, (0, 0, 0))
+        screen.blit(text, (10, 10))
+    else:
+        # Get track name and artist name
+        track_name = current_track['item']['name']
+        artist_name = current_track['item']['artists'][0]['name']
+
+        # Get album art URL
+        album_art_url = current_track['item']['album']['images'][0]['url']
+        for i in range(max_retries):
+            try:
+                urllib.request.urlretrieve(album_art_url, "album_art.jpg")
+                break  # exit the loop if the download succeeds
+            except urllib.error.URLError as e:
+                print("Error downloading album art image:", e)
+                time.sleep(5)  # wait for 5 seconds before trying again
+                continue  # continue the loop if the download fails
+            except Exception as e:
+                print("Error downloading album art image:", e)
+                break  # exit the loop if an error occurs
+
+        # Get duration of the track in milliseconds
+        track_duration_ms = current_track['item']['duration_ms']
+
+        # Get progress of the track in milliseconds
+        track_progress_ms = current_track['progress_ms']
+
+        # Calculate how much of the song has played
+        played_ms = track_progress_ms
+        if played_ms > 0:
+            played_time = str(timedelta(milliseconds=played_ms))[:-7]
+            played_time = played_time[-5:]  # only keep the minutes and seconds part
+        else:
+            played_time = "00:00"
+
+        # Get duration of the track in milliseconds
+        track_duration_ms = current_track['item']['duration_ms']
+        track_duration = divmod(track_duration_ms, 1000)  # Get minutes and seconds
+        track_duration_time = time.strftime("%M:%S", time.gmtime(track_duration_ms/1000))
+
+
+        screen.fill(bg_color)
+
+
+
+        daina = track_name
+        atlikejas = artist_name
+
+
+
+        # song info
+        text3 = number_font.render(f"{played_time}", True, (167, 167, 158))
+        text4 = number_font.render(f"{track_duration_time}", True, (167, 167, 158))
+        screen.blit(text3, (23, 205))
+        screen.blit(text4, (275, 205))
+
+
+
+        # if text is too long, add dots at the end
+        if len(daina) > max_length:
+            daina = daina[:max_length - 3] + "..."
+
+        if len(atlikejas) > max_length2:
+            atlikejas = atlikejas[:max_length - 3] + "..."
+
+
+
+        # Display song name and artist name
+        text = font.render(f"{daina}", True, (255, 255, 255))
+        text2 = font_small.render(f"{atlikejas}", True, (255, 255, 255))
+        x = (screen.get_width() - text.get_width()) / 2
+        text1_rect = text.get_rect(center=(screen_width / 2, 15))
+        screen.blit(text, text1_rect)
+        text2_rect = text2.get_rect(center=(screen_width / 2, text1_rect.bottom + 8))
+        screen.blit(text2, text2_rect)
+
+        # Load album art and display it on the screen
+        album_art_image = Image.open("album_art.jpg")
+        album_art_image = album_art_image.resize((120, 120), PIL.Image.LANCZOS)
+        album_art_image.save("album_art.jpg")
+        album_art = pygame.image.load("album_art.jpg")
+        screen.blit(album_art, (100, 50))
+
+        # Calculate the progress percentage of the track
+        progress_percent = track_progress_ms / track_duration_ms
+
+        # Calculate the width of the progress bar based on the progress percentage
+        bar_progress_width = round(bar_width * progress_percent)
+
+
+        # Draw the background bar
+        bg_rect = pygame.Rect(bar_x, bar_y, bar_width, bar_height)
+        pygame.draw.rect(screen, bar_bg_color, bg_rect, border_radius=bar_height // 2)
+
+        # Draw the progress bar
+        progress_rect = pygame.Rect(bar_x, bar_y, bar_progress_width, bar_height)
+        pygame.draw.rect(screen, text_color, progress_rect, border_radius=bar_height // 2)
+
+        #display outlines
+        screen.blit(bg_image, (-275, -128))
+        screen.blit(button_next, (204, 183))
+        screen.blit(button_previous, (101, 183))
+
+        if current_track and current_track["is_playing"]:
+            screen.blit(button_off, (152, 183))
+        else:
+            screen.blit(button_on, (154, 183))
+
+        pygame.display.update()
+
+
+    # Handle Pygame events
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            exit()
