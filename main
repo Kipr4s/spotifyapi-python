@@ -149,12 +149,8 @@ while True:
 
         screen.fill(bg_color)
 
-
-
-        daina = track_name
-        atlikejas = artist_name
-
-
+        song = track_name
+        artist = artist_name
 
         # song info
         text3 = number_font.render(f"{played_time}", True, (167, 167, 158))
@@ -165,17 +161,17 @@ while True:
 
 
         # if text is too long, add dots at the end
-        if len(daina) > max_length:
-            daina = daina[:max_length - 3] + "..."
+        if len(song) > max_length:
+            song = song[:max_length - 3] + "..."
 
-        if len(atlikejas) > max_length2:
-            atlikejas = atlikejas[:max_length - 3] + "..."
+        if len(artist) > max_length2:
+             artist = artist[:max_length - 3] + "..."
 
 
 
         # Display song name and artist name
-        text = font.render(f"{daina}", True, (255, 255, 255))
-        text2 = font_small.render(f"{atlikejas}", True, (255, 255, 255))
+        text = font.render(f"{song}", True, (255, 255, 255))
+        text2 = font_small.render(f"{artist}", True, (255, 255, 255))
         x = (screen.get_width() - text.get_width()) / 2
         text1_rect = text.get_rect(center=(screen_width / 2, 15))
         screen.blit(text, text1_rect)
